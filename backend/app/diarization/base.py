@@ -26,8 +26,7 @@ class Diarizer:
 ## This is required since we will be using multiple diarization models -> 
 # Each model will inherit from this base class and implement the diarize method
 
-## whisper diarization model will be one such subclass
-## pyannote diarization model will be another subclass
+## pyannote diarization model subclass
 ## CustomKmeansDiarization model will be another subclass
 
 ## Example return format:
