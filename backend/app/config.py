@@ -1,11 +1,12 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
-    groq_api_key: str
-    hf_token: str
-    whisper_model_size: str = "medium"
-    device: str = "cuda" 
-    audio_dir:str = "data/audio"
-
-    class Config:
-        env_file = ".env"
+    hf_token: str | None = None
+    groq_api_key: str | None = None
+    whisper_model_size: str = "medium"   
+    device: str = "cuda"
+    audio_dir: str = "data/audio"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+    )
 settings = Settings()

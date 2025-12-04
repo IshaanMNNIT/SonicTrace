@@ -12,7 +12,7 @@ scikit-learn
 
 pyannote.audio
 openai-whisper
-
+pydantic-settings
 transformers
 huggingface-hub
 uuid
