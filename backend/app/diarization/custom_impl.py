@@ -7,6 +7,15 @@ from pyannote.core import Segment as PySegment
 from app.diarization.base import Diarizer
 from app.config import settings
 
+import torch
+from torch.serialization import add_safe_globals
+from torch.torch_version import TorchVersion
+
+add_safe_globals([TorchVersion])
+
+
+
+
 ## Yaha we are inheriting the base Diarizer class and implementing the diarize method using pyannote
 class CustomDiarizer(Diarizer):
     
