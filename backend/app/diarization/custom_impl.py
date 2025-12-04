@@ -20,7 +20,7 @@ class CustomDiarizer(Diarizer):
 
         self.pipeline = Pipeline.from_pretrained(
             "pyannote/speaker-diarization-3.1",
-            use_auth_token=settings.hf_token
+            token=settings.hf_token
         )
 
     def diarize(self, audio_path: str) -> List[Dict]:
