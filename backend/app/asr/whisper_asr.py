@@ -1,4 +1,3 @@
-# app/asr/whisper_asr.py
 from typing import List, Dict
 
 import whisper
@@ -7,15 +6,6 @@ from app.config import settings
 
 
 class WhisperASR:
-    """
-    Whisper ASR optimized for diarization:
-
-    - Runs a single Whisper transcription pass on the full audio.
-    - Uses Whisper's segment timestamps to align text to diarized segments
-      using a *maximum-overlap* rule:
-        For each ASR segment, assign its text to the diarized segment
-        with which it has the largest temporal overlap.
-    """
 
     def __init__(self):
         self.device = settings.device
@@ -46,7 +36,7 @@ class WhisperASR:
         Returns the same list of segments, with "text" fields filled in.
         """
 
-        # 1) Single full-audio transcription
+        ## Single full-audio transcription
         result = self.model.transcribe(
             audio_path,
             language=None,
@@ -58,7 +48,6 @@ class WhisperASR:
         for seg in segments:
             seg["text"] = ""
 
-        ## For each ASR segment, find the best-overlap diarized segment
         for a_seg in asr_segments:
             a_start = float(a_seg["start"])
             a_end = float(a_seg["end"])
@@ -69,7 +58,7 @@ class WhisperASR:
             best_overlap_duration = 0.0
             best_match_seg: Dict | None = None
 
-            # Scan all diarized segments and track max overlap
+            #  max overlap ?? - find the diarization segment with the most overlap
             for d_seg in segments:
                 d_start = d_seg["start"]
                 d_end = d_seg["end"]
@@ -79,7 +68,7 @@ class WhisperASR:
                     best_overlap_duration = overlap
                     best_match_seg = d_seg
 
-            # Only assign if there is a meaningful overlap
+            # Only assign if there is a meaningful overlap aur agar pehle se text hua to usme add kar do
             if best_overlap_duration > 0.1 and best_match_seg is not None:
                 current_text = best_match_seg.get("text", "")
                 best_match_seg["text"] = (
