@@ -38,9 +38,9 @@ class CustomDiarizer(Diarizer):
 
             start = float(turn.start)
             end = float(turn.end)
-            speaker_label = str(speaker)  # e.g. "SPEAKER_00"
+            speaker_label = str(speaker)  # Like "SPEAKER_00"
 
-            # Convert to "Speaker 1", "Speaker 2", ...
+            # Convert -> "Speaker 1", "Speaker 2", ...
             speaker_id = self.speaker_label(speaker_label)
 
             segments.append(
@@ -55,8 +55,6 @@ class CustomDiarizer(Diarizer):
         return segments
 
     def speaker_label(self, label: str) -> str:
-        # label usually looks like "SPEAKER_00", "SPEAKER_01", ...
-        # Extract index and map to 1-based.
         try:
             idx = int(label.split("_")[-1])
             return f"Speaker {idx + 1}"
