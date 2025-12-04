@@ -1,71 +1,83 @@
+# app/diarization/custom_impl.py
 from typing import List, Dict
 import os
 
+from torch.serialization import add_safe_globals
+from torch.torch_version import TorchVersion
+import pyannote.audio.core.task as task_mod
 from pyannote.audio import Pipeline
-from pyannote.core import Segment as PySegment
 
 from app.diarization.base import Diarizer
 from app.config import settings
 
-import torch
-from torch.serialization import add_safe_globals
-from torch.torch_version import TorchVersion
 
-add_safe_globals([TorchVersion])
+# ---- PyTorch 2.6+ / 2.9+ safe unpickling fix for pyannote ----
+# 1) Allow TorchVersion (used in some checkpoints)
+safe_globals = [TorchVersion]
+
+# 2) Allow ALL classes defined in pyannote.audio.core.task
+for name, obj in vars(task_mod).items():
+    if isinstance(obj, type):
+        safe_globals.append(obj)
+
+add_safe_globals(safe_globals)
+# ---------------------------------------------------------------
 
 
-
-
-## Yaha we are inheriting the base Diarizer class and implementing the diarize method using pyannote
 class CustomDiarizer(Diarizer):
-    
+    """
+    Wrapper around pyannote's speaker diarization pipeline (v3.x).
+
+    Uses: pyannote/speaker-diarization-3.1
+    """
 
     def __init__(self):
         if not settings.hf_token:
             raise RuntimeError(
-                "HuggingFace token is required for pyannote. "
-                "No HF_TOKEN found."
+                "HF_TOKEN is required for pyannote models. Set it in your .env"
             )
 
+        # Load the v3.1 diarization pipeline with HF token
         self.pipeline = Pipeline.from_pretrained(
             "pyannote/speaker-diarization-3.1",
-            token=settings.hf_token
+            token=settings.hf_token,
         )
 
     def diarize(self, audio_path: str) -> List[Dict]:
+        """
+        Run diarization on an audio file path and return:
+        [
+          { "start": float, "end": float, "speaker": "Speaker 1" },
+          ...
+        ]
+        """
         if not os.path.exists(audio_path):
             raise FileNotFoundError(f"Audio not found: {audio_path}")
 
-        diarization = self.pipeline(audio_path)
+        # pyannote 4.x: pipeline(...) returns a DiarizeOutput object
+        output = self.pipeline(audio_path)
 
-        ## yeh return karega Annotation object. We need to convert it to the desired format.
+        # The actual Annotation lives here:
+        annotation = output.speaker_diarization
 
         segments: List[Dict] = []
-        
-        for turn, _, speaker in diarization.itertracks(yield_label=True):
-            # turn is a pyannote.core.Segment (kab start and kab end)
-
-            start = float(turn.start)
-            end = float(turn.end)
-            speaker_label = str(speaker)  # Like "SPEAKER_00"
-
-            # Convert -> "Speaker 1", "Speaker 2", ...
-            speaker_id = self.speaker_label(speaker_label)
-
+        for turn, _, speaker in annotation.itertracks(yield_label=True):
             segments.append(
                 {
-                    "start": start,
-                    "end": end,
-                    "speaker": speaker_id,
+                    "start": float(turn.start),
+                    "end": float(turn.end),
+                    "speaker": self._normalize(str(speaker)),
                 }
             )
 
-        segments.sort(key=lambda s: s["start"])
-        return segments
+        return sorted(segments, key=lambda s: s["start"])
 
-    def speaker_label(self, label: str) -> str:
+    def _normalize(self, speaker_label: str) -> str:
+        """
+        Converts SPEAKER_00, SPEAKER_01, etc. to Speaker 1, Speaker 2, etc.
+        """
         try:
-            idx = int(label.split("_")[-1])
-            return f"Speaker {idx + 1}"
+            n = int(speaker_label.split("_")[-1])
+            return f"Speaker {n + 1}"
         except Exception:
-            return label
+            return speaker_label
