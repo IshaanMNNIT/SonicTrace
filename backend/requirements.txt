@@ -15,5 +15,5 @@ openai-whisper
 
 transformers
 huggingface-hub
-
+uuid
 groq
