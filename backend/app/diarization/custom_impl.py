@@ -19,7 +19,7 @@ class CustomDiarizer(Diarizer):
             )
 
         self.pipeline = Pipeline.from_pretrained(
-            "pyannote/speaker-diarization-3.1,
+            "pyannote/speaker-diarization-3.1",
             use_auth_token=settings.hf_token
         )
 
