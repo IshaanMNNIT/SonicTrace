@@ -18,7 +18,6 @@ class CustomDiarizer(Diarizer):
                 "No HF_TOKEN found."
             )
 
-        # This model ID may change; check pyannote docs if needed.
         self.pipeline = Pipeline.from_pretrained(
             "pyannote/speaker-diarization-3.1,
             use_auth_token=settings.hf_token
@@ -41,8 +40,8 @@ class CustomDiarizer(Diarizer):
             end = float(turn.end)
             speaker_label = str(speaker)  # e.g. "SPEAKER_00"
 
-            # Normalize to "Speaker 1", "Speaker 2", ...
-            speaker_id = self._normalize_speaker_label(speaker_label)
+            # Convert to "Speaker 1", "Speaker 2", ...
+            speaker_id = self.speaker_label(speaker_label)
 
             segments.append(
                 {
@@ -55,7 +54,7 @@ class CustomDiarizer(Diarizer):
         segments.sort(key=lambda s: s["start"])
         return segments
 
-    def _normalize_speaker_label(self, label: str) -> str:
+    def speaker_label(self, label: str) -> str:
         # label usually looks like "SPEAKER_00", "SPEAKER_01", ...
         # Extract index and map to 1-based.
         try:
