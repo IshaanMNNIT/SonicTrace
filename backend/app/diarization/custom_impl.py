@@ -1,4 +1,3 @@
-# app/diarization/custom_impl.py
 from typing import List, Dict
 import os
 
@@ -37,7 +36,6 @@ class CustomDiarizer(Diarizer):
                 "HF_TOKEN is required for pyannote models. Set it in your .env"
             )
 
-        # Load the v3.1 diarization pipeline with HF token
         self.pipeline = Pipeline.from_pretrained(
             "pyannote/speaker-diarization-3.1",
             token=settings.hf_token,
@@ -54,10 +52,8 @@ class CustomDiarizer(Diarizer):
         if not os.path.exists(audio_path):
             raise FileNotFoundError(f"Audio not found: {audio_path}")
 
-        # pyannote 4.x: pipeline(...) returns a DiarizeOutput object
         output = self.pipeline(audio_path)
 
-        # The actual Annotation lives here:
         annotation = output.speaker_diarization
 
         segments: List[Dict] = []
