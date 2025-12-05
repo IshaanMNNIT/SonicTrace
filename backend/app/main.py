@@ -7,7 +7,7 @@ app = FastAPI(title="SonicTrace")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # during dev; restrict later
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
