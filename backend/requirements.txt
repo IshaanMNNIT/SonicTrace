@@ -17,3 +17,4 @@ transformers
 huggingface-hub
 uuid
 groq
+resemblyzer
